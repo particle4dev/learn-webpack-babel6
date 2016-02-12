@@ -1,0 +1,25 @@
+$blue: #3bbfce;
+$margin: 16px;
+
+table.hl {
+  border-color: $blue;
+  padding: $margin / 2;
+  td.ln { text-align: right; }
+}
+
+li {
+  font: {
+    family: serif;
+    weight: bold;
+    size: 1.2em;
+  }
+}
+
+td {
+  color: $blue;
+  text-align: center;
+}
+
+:fullscreen a {
+    display: flex
+}
