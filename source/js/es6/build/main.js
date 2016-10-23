@@ -2109,46 +2109,75 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
+	// https://github.com/magento/magento2/blob/077584c99ebb8007cad176c3b9a0144a05c259cd/app/code/Magento/SalesRule/Model/Coupon/Codegenerator.php
+	// https://github.com/magento/magento2/blob/077584c99ebb8007cad176c3b9a0144a05c259cd/app/code/Magento/SalesRule/Model/Coupon/Massgenerator.php
 	var test = __webpack_require__(2);
-
 	var DEFAULT_LENGTH_MIN = 16;
 	var DEFAULT_LENGTH_MAX = 32;
 	var SYMBOLS_COLLECTION = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	var NUMBERS_COLLECTION = '0123456789';
 	var DEFAULT_DELIMITER = '-';
+	var COUPON_FORMAT_ALPHANUMERIC = 'Alphanumeric';
+	var COUPON_FORMAT_ALPHABETICAL = 'Alphabetical';
+	var COUPON_FORMAT_NUMERIC = 'Numeric';
 
 	function getRandomInt(min, max) {
 	  return Math.floor(Math.random() * (max - min)) + min;
 	}
 
-	var generateCode = function generateCode(state) {
+	var generateCode = function generateCode(state, alphabet, length) {
+	  var prefix = arguments.length <= 3 || arguments[3] === undefined ? '' : arguments[3];
+
 	  return {
 	    generateCode: function generateCode() {
-	      var alphabet = SYMBOLS_COLLECTION;
-	      var length = DEFAULT_LENGTH_MIN;
 	      var code = '';
 	      for (var i = 0, indexMax = alphabet.length - 1; i < length; ++i) {
 	        code += alphabet.substr(getRandomInt(0, indexMax), 1);
 	      }
-	      return code;
+	      return prefix + code;
 	    }
 	  };
 	};
 
-	var instance = null;
-	var Coupon = function Coupon() {
-	  if (!instance) {
-	    var state = {};
-	    instance = Object.assign({}, generateCode(state));
-	  }
-	  return instance;
-	};
+	var VoucherCode = function () {
+	  var instance = null;
 
-	test('coupon test', function (t) {
+	  return function () {
+	    if (!instance) {
+	      var state = {};
+	      instance = Object.assign({}, generateCode(state, NUMBERS_COLLECTION, 8, 20));
+	    }
+	    return instance;
+	  };
+	}();
+
+	var OrderId = function () {
+	  var instance = null;
+
+	  return function () {
+	    if (!instance) {
+	      var state = {};
+	      instance = Object.assign({}, generateCode(state, NUMBERS_COLLECTION, 8, 10));
+	    }
+	    return instance;
+	  };
+	}();
+
+	test('VoucherCode test', function (t) {
 	  t.plan(2);
-	  var coupon = new Coupon();
-	  t.equal(_typeof(coupon.generateCode), 'function');
-	  var x = coupon.generateCode();
-	  var y = coupon.generateCode();
+	  var voucherCode = new VoucherCode();
+	  t.equal(_typeof(voucherCode.generateCode), 'function');
+	  var x = voucherCode.generateCode();
+	  var y = voucherCode.generateCode();
+	  t.notEqual(x, y);
+	});
+
+	test('OrderId test', function (t) {
+	  t.plan(2);
+	  var orderId = new OrderId();
+	  t.equal(_typeof(orderId.generateCode), 'function');
+	  var x = orderId.generateCode();
+	  var y = orderId.generateCode();
 	  t.notEqual(x, y);
 	});
 

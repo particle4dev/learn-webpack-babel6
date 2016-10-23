@@ -10,7 +10,7 @@ module.exports = require("./webpack.config")({
       exclude: /(node_modules|bower_components)/,
       loader: 'babel',
       query: {
-        cacheDirectory: true,
+        cacheDirectory: true, // !improve performance
         plugins: [
           'transform-decorators-legacy',
         ],
