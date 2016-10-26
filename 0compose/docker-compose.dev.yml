@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+
+  webpack:
+    build:
+      context: ../source
+      dockerfile: Dockerfile
+    command: bash -c "echo 'helloword'; tail -f /dev/null"
+
+# networks:
+  # back-tier:
+  # front-tier:
+# volumes:
+  # db-data:

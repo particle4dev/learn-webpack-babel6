@@ -1,0 +1,5 @@
+#!/bin/bash
+
+NODE_VERSION=""
+NPM_VERSION=""
+MONGODB_VERSION=""

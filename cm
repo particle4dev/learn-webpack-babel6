@@ -1,0 +1,22 @@
+#!/bin/bash
+
+source ./0compose/utils.sh
+source ./0compose/constant.sh
+
+c=$1
+shift;
+
+case "$c" in
+  run)
+    ./0compose/run.sh "${@}"
+    ;;
+
+  logs)
+    ./0compose/logs.sh "${@}"
+    ;;
+
+  *)
+    echo $"Usage: $0 {run}"
+    exit 1
+
+esac
