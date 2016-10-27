@@ -15,6 +15,15 @@ case "$c" in
     ./0compose/logs.sh "${@}"
     ;;
 
+  exec)
+    ./0compose/exec.sh "${@}"
+    ;;
+
+  rm)
+    docker-compose -f ./0compose/docker-compose.dev.yml stop
+    docker-compose -f ./0compose/docker-compose.dev.yml rm -f
+    ;;
+
   *)
     echo $"Usage: $0 {run}"
     exit 1

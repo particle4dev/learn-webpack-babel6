@@ -34,7 +34,7 @@ module.exports = function(options) {
     debug: options.debug,
     target: 'web',
     entry: [
-      './sass/page1.js'
+      './src/sass/page1.js'
     ],
     output: {
       path: path.join(__dirname, './build'),

@@ -18,7 +18,7 @@ module.exports = function(options) {
     debug: options.debug,
     target:  'node',
     entry: [
-      './js/decorator/test.js'
+      './src/js/es6/test.js'
     ],
     output: {
       path: path.join(__dirname, './build'),

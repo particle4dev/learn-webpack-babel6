@@ -53,14 +53,14 @@
 
 	'use strict';
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var test = __webpack_require__(2);
-	__webpack_require__(36);
+	__webpack_require__(39);
 
 	(function () {
 	  var Cat = function () {
@@ -100,7 +100,7 @@
 
 	(function () {
 	  var foo = function foo() {
-	    var msg = arguments.length <= 0 || arguments[0] === undefined ? "I am default" : arguments[0];
+	    var msg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "I am default";
 
 	    return msg;
 	  };
@@ -148,7 +148,7 @@
 	var defined = __webpack_require__(3);
 	var createDefaultStream = __webpack_require__(4);
 	var Test = __webpack_require__(8);
-	var createResult = __webpack_require__(33);
+	var createResult = __webpack_require__(36);
 	var through = __webpack_require__(5);
 
 	var canEmitExit = typeof process !== 'undefined' && process
@@ -229,7 +229,7 @@
 	            var only = harness._results._only;
 	            for (var i = 0; i < harness._tests.length; i++) {
 	                var t = harness._tests[i];
-	                if (only && t.name !== only) continue;
+	                if (only && t !== only) continue;
 	                t._exit();
 	            }
 	        }
@@ -283,11 +283,12 @@
 	    };
 	    
 	    var only = false;
-	    test.only = function (name) {
+	    test.only = function () {
 	        if (only) throw new Error('there can only be one only test');
-	        results.only(name);
 	        only = true;
-	        return test.apply(null, arguments);
+	        var t = test.apply(null, arguments);
+	        results.only(t);
+	        return t;
 	    };
 	    test._exitCode = 0;
 	    
@@ -479,9 +480,11 @@
 	var defined = __webpack_require__(3);
 	var path = __webpack_require__(12);
 	var inherits = __webpack_require__(13);
-	var EventEmitter = __webpack_require__(15).EventEmitter;
-	var has = __webpack_require__(16);
-	var trim = __webpack_require__(18);
+	var EventEmitter = __webpack_require__(16).EventEmitter;
+	var has = __webpack_require__(17);
+	var trim = __webpack_require__(19);
+	var bind = __webpack_require__(20);
+	var isEnumerable = bind.call(Function.call, Object.prototype.propertyIsEnumerable);
 
 	module.exports = Test;
 
@@ -489,6 +492,7 @@
 	    ? setImmediate
 	    : process.nextTick
 	;
+	var safeSetTimeout = setTimeout;
 
 	inherits(Test, EventEmitter);
 
@@ -526,6 +530,7 @@
 	    this.pendingCount = 0;
 	    this._skip = args.opts.skip || false;
 	    this._timeout = args.opts.timeout;
+	    this._objectPrintDepth = args.opts.objectPrintDepth || 5;
 	    this._plan = undefined;
 	    this._cb = args.cb;
 	    this._progeny = [];
@@ -544,6 +549,9 @@
 	}
 
 	Test.prototype.run = function () {
+	    if (this._skip) {
+	        this.comment('SKIP ' + this.name);
+	    }
 	    if (!this._cb || this._skip) {
 	        return this._end();
 	    }
@@ -579,7 +587,10 @@
 	};
 
 	Test.prototype.comment = function (msg) {
-	    this.emit('result', trim(msg).replace(/^#\s*/, ''));
+	    var that = this;
+	    trim(msg).split('\n').forEach(function (aMsg) {
+	        that.emit('result', trim(aMsg).replace(/^#\s*/, ''));
+	    });
 	};
 
 	Test.prototype.plan = function (n) {
@@ -590,7 +601,7 @@
 	Test.prototype.timeoutAfter = function(ms) {
 	    if (!ms) throw new Error('timeoutAfter requires a timespan');
 	    var self = this;
-	    var timeout = setTimeout(function() {
+	    var timeout = safeSetTimeout(function() {
 	        self.fail('test timed out after ' + ms + 'ms');
 	        self.end();
 	    }, ms);
@@ -668,7 +679,8 @@
 	        ok : Boolean(ok),
 	        skip : defined(extra.skip, opts.skip),
 	        name : defined(extra.message, opts.message, '(unnamed assert)'),
-	        operator : defined(extra.operator, opts.operator)
+	        operator : defined(extra.operator, opts.operator),
+	        objectPrintDepth : self._objectPrintDepth
 	    };
 	    if (has(opts, 'actual') || has(extra, 'actual')) {
 	        res.actual = defined(extra.actual, opts.actual);
@@ -685,7 +697,7 @@
 	    if (!ok) {
 	        var e = new Error('exception');
 	        var err = (e.stack || '').split('\n');
-	        var dir = path.dirname(__dirname) + '/';
+	        var dir = path.dirname(__dirname) + path.sep;
 	        
 	        for (var i = 0; i < err.length; i++) {
 	            var m = /^[^\s]*\s*\bat\s+(.+)/.exec(err[i]);
@@ -694,12 +706,12 @@
 	            }
 	            
 	            var s = m[1].split(/\s+/);
-	            var filem = /(\/[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[1]);
+	            var filem = /((?:\/|[A-Z]:\\)[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[1]);
 	            if (!filem) {
-	                filem = /(\/[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[2]);
+	                filem = /((?:\/|[A-Z]:\\)[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[2]);
 	                
 	                if (!filem) {
-	                    filem = /(\/[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[3]);
+	                    filem = /((?:\/|[A-Z]:\\)[^:\s]+:(\d+)(?::(\d+))?)/.exec(s[3]);
 
 	                    if (!filem) {
 	                        continue;
@@ -773,7 +785,7 @@
 	= Test.prototype.assert
 	= function (value, msg, extra) {
 	    this._assert(value, {
-	        message : msg,
+	        message : defined(msg, 'should be truthy'),
 	        operator : 'ok',
 	        expected : true,
 	        actual : value,
@@ -786,7 +798,7 @@
 	= Test.prototype.notok
 	= function (value, msg, extra) {
 	    this._assert(!value, {
-	        message : msg,
+	        message : defined(msg, 'should be falsy'),
 	        operator : 'notOk',
 	        expected : false,
 	        actual : value,
@@ -912,9 +924,11 @@
 	        fn();
 	    } catch (err) {
 	        caught = { error : err };
-	        var message = err.message;
-	        delete err.message;
-	        err.message = message;
+	        if ((err != null) && (!isEnumerable(err, 'message') || !has(err, 'message'))) {
+	            var message = err.message;
+	            delete err.message;
+	            err.message = message;
+	        }
 	    }
 
 	    var passed = caught;
@@ -929,7 +943,7 @@
 	        caught.error = caught.error.constructor;
 	    }
 
-	    this._assert(passed, {
+	    this._assert(typeof fn === 'function' && passed, {
 	        message : defined(msg, 'should throw'),
 	        operator : 'throws',
 	        actual : caught && caught.error,
@@ -1123,7 +1137,13 @@
 /* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(14).inherits
+	try {
+	  var util = __webpack_require__(14);
+	  if (typeof util.inherits !== 'function') throw '';
+	  module.exports = util.inherits;
+	} catch (e) {
+	  module.exports = __webpack_require__(15);
+	}
 
 
 /***/ },
@@ -1136,19 +1156,48 @@
 /* 15 */
 /***/ function(module, exports) {
 
-	module.exports = require("events");
+	if (typeof Object.create === 'function') {
+	  // implementation from standard node.js 'util' module
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    ctor.prototype = Object.create(superCtor.prototype, {
+	      constructor: {
+	        value: ctor,
+	        enumerable: false,
+	        writable: true,
+	        configurable: true
+	      }
+	    });
+	  };
+	} else {
+	  // old school shim for old browsers
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    var TempCtor = function () {}
+	    TempCtor.prototype = superCtor.prototype
+	    ctor.prototype = new TempCtor()
+	    ctor.prototype.constructor = ctor
+	  }
+	}
+
 
 /***/ },
 /* 16 */
+/***/ function(module, exports) {
+
+	module.exports = require("events");
+
+/***/ },
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bind = __webpack_require__(17);
+	var bind = __webpack_require__(18);
 
 	module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports) {
 
 	var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
@@ -1202,19 +1251,19 @@
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bind = __webpack_require__(17);
-	var define = __webpack_require__(19);
+	var bind = __webpack_require__(20);
+	var define = __webpack_require__(22);
 
-	var implementation = __webpack_require__(23);
-	var getPolyfill = __webpack_require__(31);
-	var shim = __webpack_require__(32);
+	var implementation = __webpack_require__(26);
+	var getPolyfill = __webpack_require__(34);
+	var shim = __webpack_require__(35);
 
-	var boundTrim = bind.call(Function.call, implementation);
+	var boundTrim = bind.call(Function.call, getPolyfill());
 
 	define(boundTrim, {
 		getPolyfill: getPolyfill,
@@ -1226,13 +1275,76 @@
 
 
 /***/ },
-/* 19 */
+/* 20 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var implementation = __webpack_require__(21);
+
+	module.exports = Function.prototype.bind || implementation;
+
+
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+	var slice = Array.prototype.slice;
+	var toStr = Object.prototype.toString;
+	var funcType = '[object Function]';
+
+	module.exports = function bind(that) {
+	    var target = this;
+	    if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+	        throw new TypeError(ERROR_MESSAGE + target);
+	    }
+	    var args = slice.call(arguments, 1);
+
+	    var bound;
+	    var binder = function () {
+	        if (this instanceof bound) {
+	            var result = target.apply(
+	                this,
+	                args.concat(slice.call(arguments))
+	            );
+	            if (Object(result) === result) {
+	                return result;
+	            }
+	            return this;
+	        } else {
+	            return target.apply(
+	                that,
+	                args.concat(slice.call(arguments))
+	            );
+	        }
+	    };
+
+	    var boundLength = Math.max(0, target.length - args.length);
+	    var boundArgs = [];
+	    for (var i = 0; i < boundLength; i++) {
+	        boundArgs.push('$' + i);
+	    }
+
+	    bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+	    if (target.prototype) {
+	        var Empty = function Empty() {};
+	        Empty.prototype = target.prototype;
+	        bound.prototype = new Empty();
+	        Empty.prototype = null;
+	    }
+
+	    return bound;
+	};
+
+
+/***/ },
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var keys = __webpack_require__(20);
-	var foreach = __webpack_require__(22);
+	var keys = __webpack_require__(23);
+	var foreach = __webpack_require__(25);
 	var hasSymbols = typeof Symbol === 'function' && typeof Symbol() === 'symbol';
 
 	var toStr = Object.prototype.toString;
@@ -1288,7 +1400,7 @@
 
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1297,7 +1409,7 @@
 	var has = Object.prototype.hasOwnProperty;
 	var toStr = Object.prototype.toString;
 	var slice = Array.prototype.slice;
-	var isArgs = __webpack_require__(21);
+	var isArgs = __webpack_require__(24);
 	var hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString');
 	var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
 	var dontEnums = [
@@ -1422,7 +1534,7 @@
 
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1445,7 +1557,7 @@
 
 
 /***/ },
-/* 22 */
+/* 25 */
 /***/ function(module, exports) {
 
 	
@@ -1473,13 +1585,13 @@
 
 
 /***/ },
-/* 23 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bind = __webpack_require__(17);
-	var ES = __webpack_require__(24);
+	var bind = __webpack_require__(20);
+	var ES = __webpack_require__(27);
 	var replace = bind.call(Function.call, String.prototype.replace);
 
 	var leftWhitespace = /^[\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028\u2029\uFEFF]+/;
@@ -1492,19 +1604,19 @@
 
 
 /***/ },
-/* 24 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var $isNaN = Number.isNaN || function (a) { return a !== a; };
-	var $isFinite = __webpack_require__(25);
+	var $isFinite = __webpack_require__(28);
 
-	var sign = __webpack_require__(26);
-	var mod = __webpack_require__(27);
+	var sign = __webpack_require__(29);
+	var mod = __webpack_require__(30);
 
-	var IsCallable = __webpack_require__(28);
-	var toPrimitive = __webpack_require__(29);
+	var IsCallable = __webpack_require__(31);
+	var toPrimitive = __webpack_require__(32);
 
 	// https://es5.github.io/#x9
 	var ES5 = {
@@ -1562,7 +1674,7 @@
 
 
 /***/ },
-/* 25 */
+/* 28 */
 /***/ function(module, exports) {
 
 	var $isNaN = Number.isNaN || function (a) { return a !== a; };
@@ -1571,7 +1683,7 @@
 
 
 /***/ },
-/* 26 */
+/* 29 */
 /***/ function(module, exports) {
 
 	module.exports = function sign(number) {
@@ -1580,7 +1692,7 @@
 
 
 /***/ },
-/* 27 */
+/* 30 */
 /***/ function(module, exports) {
 
 	module.exports = function mod(number, modulo) {
@@ -1590,7 +1702,7 @@
 
 
 /***/ },
-/* 28 */
+/* 31 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1635,16 +1747,16 @@
 
 
 /***/ },
-/* 29 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var toStr = Object.prototype.toString;
 
-	var isPrimitive = __webpack_require__(30);
+	var isPrimitive = __webpack_require__(33);
 
-	var isCallable = __webpack_require__(28);
+	var isCallable = __webpack_require__(31);
 
 	// https://es5.github.io/#x8.12
 	var ES5internalSlots = {
@@ -1678,7 +1790,7 @@
 
 
 /***/ },
-/* 30 */
+/* 33 */
 /***/ function(module, exports) {
 
 	module.exports = function isPrimitive(value) {
@@ -1687,12 +1799,12 @@
 
 
 /***/ },
-/* 31 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var implementation = __webpack_require__(23);
+	var implementation = __webpack_require__(26);
 
 	var zeroWidthSpace = '\u200b';
 
@@ -1705,13 +1817,13 @@
 
 
 /***/ },
-/* 32 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var define = __webpack_require__(19);
-	var getPolyfill = __webpack_require__(31);
+	var define = __webpack_require__(22);
+	var getPolyfill = __webpack_require__(34);
 
 	module.exports = function shimStringTrim() {
 		var polyfill = getPolyfill();
@@ -1721,16 +1833,16 @@
 
 
 /***/ },
-/* 33 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter = __webpack_require__(15).EventEmitter;
+	var EventEmitter = __webpack_require__(16).EventEmitter;
 	var inherits = __webpack_require__(13);
 	var through = __webpack_require__(5);
-	var resumer = __webpack_require__(34);
-	var inspect = __webpack_require__(35);
-	var bind = __webpack_require__(17);
-	var has = __webpack_require__(16);
+	var resumer = __webpack_require__(37);
+	var inspect = __webpack_require__(38);
+	var bind = __webpack_require__(20);
+	var has = __webpack_require__(17);
 	var regexpTest = bind.call(Function.call, RegExp.prototype.test);
 	var yamlIndicators = /\:|\-|\?/;
 	var nextTick = typeof setImmediate !== 'undefined'
@@ -1748,6 +1860,7 @@
 	    this.pass = 0;
 	    this._stream = through();
 	    this.tests = [];
+	    this._only = null;
 	}
 
 	Results.prototype.createStream = function (opts) {
@@ -1809,8 +1922,8 @@
 	    self.emit('_push', t);
 	};
 
-	Results.prototype.only = function (name) {
-	    this._only = name;
+	Results.prototype.only = function (t) {
+	    this._only = t;
 	};
 
 	Results.prototype._watch = function (t) {
@@ -1867,8 +1980,8 @@
 	    output += inner + 'operator: ' + res.operator + '\n';
 	    
 	    if (has(res, 'expected') || has(res, 'actual')) {
-	        var ex = inspect(res.expected);
-	        var ac = inspect(res.actual);
+	        var ex = inspect(res.expected, {depth: res.objectPrintDepth});
+	        var ac = inspect(res.actual, {depth: res.objectPrintDepth});
 	        
 	        if (Math.max(ex.length, ac.length) > 65 || invalidYaml(ex) || invalidYaml(ac)) {
 	            output += inner + 'expected: |-\n' + inner + '  ' + ex + '\n';
@@ -1902,7 +2015,7 @@
 	    do {
 	        var t = results.tests.shift();
 	        if (!t) continue;
-	        if (results._only === t.name) {
+	        if (results._only === t) {
 	            return t;
 	        }
 	    } while (results.tests.length !== 0)
@@ -1914,7 +2027,7 @@
 
 
 /***/ },
-/* 34 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var through = __webpack_require__(5);
@@ -1949,16 +2062,25 @@
 
 
 /***/ },
-/* 35 */
+/* 38 */
 /***/ function(module, exports) {
+
+	var hasMap = typeof Map === 'function' && Map.prototype;
+	var mapSizeDescriptor = Object.getOwnPropertyDescriptor && hasMap ? Object.getOwnPropertyDescriptor(Map.prototype, 'size') : null;
+	var mapSize = hasMap && mapSizeDescriptor && typeof mapSizeDescriptor.get === 'function' ? mapSizeDescriptor.get : null;
+	var mapForEach = hasMap && Map.prototype.forEach;
+	var hasSet = typeof Set === 'function' && Set.prototype;
+	var setSizeDescriptor = Object.getOwnPropertyDescriptor && hasSet ? Object.getOwnPropertyDescriptor(Set.prototype, 'size') : null;
+	var setSize = hasSet && setSizeDescriptor && typeof setSizeDescriptor.get === 'function' ? setSizeDescriptor.get : null;
+	var setForEach = hasSet && Set.prototype.forEach;
+	var booleanValueOf = Boolean.prototype.valueOf;
 
 	module.exports = function inspect_ (obj, opts, depth, seen) {
 	    if (!opts) opts = {};
 	    
 	    var maxDepth = opts.depth === undefined ? 5 : opts.depth;
 	    if (depth === undefined) depth = 0;
-	    if (depth >= maxDepth && maxDepth > 0
-	    && obj && typeof obj === 'object') {
+	    if (depth >= maxDepth && maxDepth > 0 && obj && typeof obj === 'object') {
 	        return '[Object]';
 	    }
 	    
@@ -2026,7 +2148,33 @@
 	    else if (typeof obj === 'object' && typeof obj.inspect === 'function') {
 	        return obj.inspect();
 	    }
-	    else if (typeof obj === 'object' && !isDate(obj) && !isRegExp(obj)) {
+	    else if (isMap(obj)) {
+	        var parts = [];
+	        mapForEach.call(obj, function (value, key) {
+	            parts.push(inspect(key, obj) + ' => ' + inspect(value, obj));
+	        });
+	        return 'Map (' + mapSize.call(obj) + ') {' + parts.join(', ') + '}';
+	    }
+	    else if (isSet(obj)) {
+	        var parts = [];
+	        setForEach.call(obj, function (value ) {
+	            parts.push(inspect(value, obj));
+	        });
+	        return 'Set (' + setSize.call(obj) + ') {' + parts.join(', ') + '}';
+	    }
+	    else if (typeof obj !== 'object') {
+	        return String(obj);
+	    }
+	    else if (isNumber(obj)) {
+	        return 'Object(' + Number(obj) + ')';
+	    }
+	    else if (isBoolean(obj)) {
+	        return 'Object(' + booleanValueOf.call(obj) + ')';
+	    }
+	    else if (isString(obj)) {
+	        return 'Object(' + inspect(String(obj)) + ')';
+	    }
+	    else if (!isDate(obj) && !isRegExp(obj)) {
 	        var xs = [], keys = [];
 	        for (var key in obj) {
 	            if (has(obj, key)) keys.push(key);
@@ -2054,6 +2202,9 @@
 	function isRegExp (obj) { return toStr(obj) === '[object RegExp]' }
 	function isError (obj) { return toStr(obj) === '[object Error]' }
 	function isSymbol (obj) { return toStr(obj) === '[object Symbol]' }
+	function isString (obj) { return toStr(obj) === '[object String]' }
+	function isNumber (obj) { return toStr(obj) === '[object Number]' }
+	function isBoolean (obj) { return toStr(obj) === '[object Boolean]' }
 
 	var hasOwn = Object.prototype.hasOwnProperty || function (key) { return key in this; };
 	function has (obj, key) {
@@ -2076,6 +2227,28 @@
 	        if (xs[i] === x) return i;
 	    }
 	    return -1;
+	}
+
+	function isMap (x) {
+	    if (!mapSize) {
+	        return false;
+	    }
+	    try {
+	        mapSize.call(x);
+	        return true;
+	    } catch (e) {}
+	    return false;
+	}
+
+	function isSet (x) {
+	    if (!setSize) {
+	        return false;
+	    }
+	    try {
+	        setSize.call(x);
+	        return true;
+	    } catch (e) {}
+	    return false;
 	}
 
 	function isElement (x) {
@@ -2102,12 +2275,12 @@
 
 
 /***/ },
-/* 36 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	// https://github.com/magento/magento2/blob/077584c99ebb8007cad176c3b9a0144a05c259cd/app/code/Magento/SalesRule/Model/Coupon/Codegenerator.php
 	// https://github.com/magento/magento2/blob/077584c99ebb8007cad176c3b9a0144a05c259cd/app/code/Magento/SalesRule/Model/Coupon/Massgenerator.php
@@ -2126,7 +2299,7 @@
 	}
 
 	var generateCode = function generateCode(state, alphabet, length) {
-	  var prefix = arguments.length <= 3 || arguments[3] === undefined ? '' : arguments[3];
+	  var prefix = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
 
 	  return {
 	    generateCode: function generateCode() {
