@@ -25,7 +25,7 @@ case "$c" in
     ;;
 
   *)
-    echo $"Usage: $0 {run}"
+    echo $"Usage: $0 {run|logs|exec|rm}"
     exit 1
 
 esac
