@@ -6,9 +6,9 @@ services:
     build:
       context: ../source
       dockerfile: Dockerfile
-    user: nodejs
     volumes:
       - ../source/src:/home/nodejs/app/src
+      - ../source/build:/home/nodejs/app/build
       - ../source/package.json:/home/nodejs/app/package.json
       - ../source/npm-shrinkwrap.json:/home/nodejs/app/npm-shrinkwrap.json
     command: bash -c "echo 'helloword'; tail -f /dev/null"
