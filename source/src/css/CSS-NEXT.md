@@ -6,3 +6,7 @@
 ### Plugin
 
 - https://github.com/postcss/postcss-reporter
+
+### Webpack plugin
+
+- https://github.com/webpack/extract-text-webpack-plugin

@@ -11,15 +11,13 @@ module.exports = (options) => ({
   entry: options.entry,
 
   output: Object.assign({
-    path: path.resolve(process.cwd(), 'build', 'css'),
+    path: path.resolve(process.cwd(), 'build', options.path),
   }, options.output),
 
   module: {
     loaders: [{
-      test: /\.js$/, // Transform all .js files required somewhere with Babel
-      loader: 'babel',
-      exclude: /node_modules/,
-      query: options.babelQuery,
+      test: /\.html$/,
+      loader: 'html-loader',
     },
     {
       test: /\.css$/,
