@@ -5,8 +5,6 @@
   "main": "index.js",
   "scripts": {
     "loaders": "NODE_ENV=test node ./loaders-by-extension-test.js | tap-notify | tap-diff",
-    "sass-dev": "NODE_ENV=development node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/sass/webpack-dev.config.js",
-    "sass-pro": "NODE_ENV=production node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/sass/webpack-pro.config.js",
     "es6-dev": "NODE_ENV=development node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-dev.config.js",
     "es6-pro": "NODE_ENV=production node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-pro.config.js",
     "es6-test": "NODE_ENV=test node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-test.config.js && node src/js/es6/build/main.js | tap-notify | tap-diff",
