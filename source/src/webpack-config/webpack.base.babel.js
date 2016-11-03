@@ -15,7 +15,7 @@ module.exports = (options) => ({
   }, options.output),
 
   module: {
-    loaders: [{
+    loaders: options.loaders.concat([{
       test: /\.html$/,
       loader: 'html-loader',
     },
@@ -23,7 +23,7 @@ module.exports = (options) => ({
       test: /\.css$/,
       exclude: /node_modules/,
       loader: options.cssLoaders,
-    }]
+    }])
   },
 
   plugins: options.plugins.concat([

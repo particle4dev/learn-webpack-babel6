@@ -7,6 +7,7 @@ module.exports = require('../webpack-config/webpack.base.babel')({
   entry: [
     path.join(process.cwd(), 'src/html/index.js'),
   ],
+
   // Utilize long-term caching by adding content hashes (not compilation hashes) to compiled assets
   output: {
     filename: '[name].[chunkhash].js',

@@ -17,6 +17,7 @@
     "css-test:test": "NODE_ENV=test webpack --config ./src/css/webpack.test.babel",
 
     "html-pro:test": "rm -rf ./build/html/* && NODE_ENV=production webpack --config ./src/html/webpack.prod.babel",
+    "json-pro:test": "rm -rf ./build/json/* && NODE_ENV=production webpack --config ./src/json/webpack.prod.babel",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -43,6 +44,9 @@
 
     "css-loader": "^0.25.0",
     "extract-text-webpack-plugin": "^1.0.1",
+
+    "json-loader": "0.5.4",
+
     "node-sass": "^3.4.2",
 
     "postcss-cssnext": "2.8.0",
