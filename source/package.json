@@ -4,8 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "loaders": "NODE_ENV=test node ./loaders-by-extension-test.js | tap-notify | tap-diff",
-
     "css-dev:test": "NODE_ENV=development webpack --config ./src/css/webpack.dev.babel",
     "css-pro:test": "rm -rf ./build/css/* && NODE_ENV=production webpack --config ./src/css/webpack.prod.babel",
     "css-test:test": "NODE_ENV=test webpack --config ./src/css/webpack.test.babel",
