@@ -5,10 +5,6 @@
   "main": "index.js",
   "scripts": {
     "loaders": "NODE_ENV=test node ./loaders-by-extension-test.js | tap-notify | tap-diff",
-    "es6-dev": "NODE_ENV=development node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-dev.config.js",
-    "es6-pro": "NODE_ENV=production node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-pro.config.js",
-    "es6-test": "NODE_ENV=test node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/es6/webpack-test.config.js && node src/js/es6/build/main.js | tap-notify | tap-diff",
-    "decorator-test": "NODE_ENV=test node ./node_modules/webpack/bin/webpack.js --progress --profile --verbose --colors --display-error-details --config src/js/decorator/webpack-test.config.js && node src/js/decorator/build/main.js | tap-notify | tap-diff",
 
     "css-dev:test": "NODE_ENV=development webpack --config ./src/css/webpack.dev.babel",
     "css-pro:test": "rm -rf ./build/css/* && NODE_ENV=production webpack --config ./src/css/webpack.prod.babel",
