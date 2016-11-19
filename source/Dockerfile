@@ -11,6 +11,8 @@ RUN mkdir -p /home/nodejs/app
 WORKDIR /home/nodejs/app
 
 # Install app dependencies
+# RUN npm install -g yarn
+
 COPY package.json npm-shrinkwrap.json /home/nodejs/app/
 # Fix bug https://github.com/npm/npm/issues/9863
 RUN cd $(npm root -g)/npm \

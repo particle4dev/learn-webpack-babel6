@@ -7,7 +7,6 @@
     "css-dev:test": "NODE_ENV=development webpack --config ./src/css/webpack.dev.babel",
     "css-pro:test": "rm -rf ./build/css/* && NODE_ENV=production webpack --config ./src/css/webpack.prod.babel",
     "css-test:test": "NODE_ENV=test webpack --config ./src/css/webpack.test.babel",
-
     "html-pro:test": "rm -rf ./build/html/* && NODE_ENV=production webpack --config ./src/html/webpack.prod.babel",
     "json-pro:test": "rm -rf ./build/json/* && NODE_ENV=production webpack --config ./src/json/webpack.prod.babel",
     "file-loader-pro:test": "rm -rf ./build/file-loader/* && NODE_ENV=production webpack --config ./src/file-loader/webpack.prod.babel",
@@ -35,19 +34,14 @@
     "babel-preset-react": "6.11.1",
     "babel-preset-react-hmre": "1.1.1",
     "babel-preset-stage-0": "6.5.0",
-
     "css-loader": "^0.25.0",
     "extract-text-webpack-plugin": "^1.0.1",
-
     "json-loader": "0.5.4",
-
     "node-sass": "^3.4.2",
-
     "postcss-cssnext": "2.8.0",
     "postcss-focus": "1.0.0",
     "postcss-loader": "0.13.0",
     "postcss-reporter": "1.4.1",
-
     "sass-loader": "^3.1.2",
     "style-loader": "^0.13.1",
     "tap-diff": "^0.1.1",
@@ -58,7 +52,8 @@
   },
   "dependencies": {
     "react": "15.3.1",
-    "react-dom": "15.3.1"
+    "react-dom": "15.3.1",
+    "express": "4.14.0"
   },
   "babel": {
     "presets": [
