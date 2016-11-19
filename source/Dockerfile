@@ -20,4 +20,5 @@ RUN cd $(npm root -g)/npm \
   && sed -i -e s/graceful-fs/fs-extra/ -e s/fs\.rename/fs.move/ ./lib/utils/rename.js
 RUN npm install
 
+EXPOSE 3000
 CMD [ "npm", "run", "test" ]

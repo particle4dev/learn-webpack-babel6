@@ -9,8 +9,10 @@
     "css-test:test": "NODE_ENV=test webpack --config ./src/css/webpack.test.babel",
     "html-pro:test": "rm -rf ./build/html/* && NODE_ENV=production webpack --config ./src/html/webpack.prod.babel",
     "json-pro:test": "rm -rf ./build/json/* && NODE_ENV=production webpack --config ./src/json/webpack.prod.babel",
+    "json-test:test": "rm -rf ./build/json/* && NODE_ENV=production webpack --config ./src/json/webpack.test.babel && node ./build/json/index.js",
     "file-loader-pro:test": "rm -rf ./build/file-loader/* && NODE_ENV=production webpack --config ./src/file-loader/webpack.prod.babel",
     "react-pro:test": "rm -rf ./build/react/* && NODE_ENV=production webpack --config ./src/react/webpack.prod.babel",
+    "webpack-dev-server": "node ./src/webpack-dev-server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -35,7 +37,9 @@
     "babel-preset-react-hmre": "1.1.1",
     "babel-preset-stage-0": "6.5.0",
     "css-loader": "^0.25.0",
-    "extract-text-webpack-plugin": "^1.0.1",
+    "extract-text-webpack-plugin": "2.0.0-beta.4",
+    "eventsource-polyfill": "0.9.6",
+    "html-webpack-plugin": "2.24.0",
     "json-loader": "0.5.4",
     "node-sass": "^3.4.2",
     "postcss-cssnext": "2.8.0",
@@ -47,8 +51,9 @@
     "tap-diff": "^0.1.1",
     "tap-notify": "^1.0.0",
     "tape": "^4.4.0",
-    "webpack": "^2.1.0-beta.25",
-    "extract-text-webpack-plugin": "2.0.0-beta.4"
+    "webpack": "2.1.0-beta.25",
+    "webpack-dev-middleware": "1.8.4",
+    "webpack-hot-middleware": "2.13.1"
   },
   "dependencies": {
     "react": "15.3.1",

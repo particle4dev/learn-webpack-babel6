@@ -11,7 +11,9 @@ services:
       - ../source/build:/home/nodejs/app/build
       - ../source/package.json:/home/nodejs/app/package.json
       - ../source/npm-shrinkwrap.json:/home/nodejs/app/npm-shrinkwrap.json
-    command: bash -c "echo 'helloword'; tail -f /dev/null"
+    ports:
+      - 3000:3000
+    command: bash -c "tail -f /dev/null"
 
 # networks:
   # back-tier:
